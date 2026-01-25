@@ -97,7 +97,7 @@ func (h *CategoryHandler) NewCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, "Category stored successfully", category)
+	response.Success(w, "Category stored successfully", category, http.StatusCreated)
 }
 
 func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request, id int) {
@@ -110,7 +110,7 @@ func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request,
 
 	category, err := h.repo.UpdateCategory(&updatedCategory, id)
 	if err != nil {
-		response.Error(w, "Internal server error", http.StatusInternalServerError)
+		response.Error(w, "Category not found", http.StatusNotFound)
 		return
 	}
 

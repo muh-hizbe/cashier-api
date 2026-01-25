@@ -97,7 +97,7 @@ func (h *ProductHandler) NewProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, "Product stored successfully", product)
+	response.Success(w, "Product stored successfully", product, http.StatusCreated)
 }
 
 func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, id int) {
@@ -110,7 +110,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, i
 
 	product, err := h.repo.UpdateProduct(&updatedProduct, id)
 	if err != nil {
-		response.Error(w, "Internal server error", http.StatusInternalServerError)
+		response.Error(w, "Product not found", http.StatusNotFound)
 		return
 	}
 
