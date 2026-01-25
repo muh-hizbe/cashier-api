@@ -33,9 +33,10 @@ func (r *CategoryRepository) CreateCategory(category *model.Category) (model.Cat
 	return *category, nil
 }
 
-func (r *CategoryRepository) UpdateCategory(category *model.Category) (model.Category, error) {
+func (r *CategoryRepository) UpdateCategory(category *model.Category, id int) (model.Category, error) {
 	for i, c := range model.Categories {
 		if c.ID == category.ID {
+			category.ID = c.ID
 			model.Categories[i] = *category
 			return *category, nil
 		}

@@ -33,9 +33,10 @@ func (r *ProductRepository) CreateProduct(product *model.Product) (model.Product
 	return *product, nil
 }
 
-func (r *ProductRepository) UpdateProduct(product *model.Product) (model.Product, error) {
+func (r *ProductRepository) UpdateProduct(product *model.Product, id int) (model.Product, error) {
 	for i, p := range model.Products {
-		if p.ID == product.ID {
+		if p.ID == id {
+			product.ID = id
 			model.Products[i] = *product
 			return *product, nil
 		}

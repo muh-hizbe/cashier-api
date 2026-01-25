@@ -108,7 +108,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, i
 		return
 	}
 
-	product, err := h.repo.UpdateProduct(&updatedProduct)
+	product, err := h.repo.UpdateProduct(&updatedProduct, id)
 	if err != nil {
 		response.Error(w, "Internal server error", http.StatusInternalServerError)
 		return

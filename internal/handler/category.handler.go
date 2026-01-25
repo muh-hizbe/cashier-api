@@ -108,7 +108,7 @@ func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	category, err := h.repo.UpdateCategory(&updatedCategory)
+	category, err := h.repo.UpdateCategory(&updatedCategory, id)
 	if err != nil {
 		response.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
