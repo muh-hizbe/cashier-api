@@ -1,13 +1,15 @@
 package route
 
-import "net/http"
+import (
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
-func registerRoutes(w http.ResponseWriter, r *http.Request) {
-	registerHealthRoutes(w, r)
-	registerProductRoutes(w, r)
-	registerCategoryRoutes(w, r)
+func registerRoutes(db *pgxpool.Pool) {
+	registerHealthRoutes(db)
+	registerProductRoutes(db)
+	registerCategoryRoutes(db)
 }
 
-func Init(w http.ResponseWriter, r *http.Request) {
-	registerRoutes(w, r)
+func Init(db *pgxpool.Pool) {
+	registerRoutes(db)
 }

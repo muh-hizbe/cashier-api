@@ -2,21 +2,23 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/muh-hizbe/cashier-api/internal/domain"
 	"github.com/muh-hizbe/cashier-api/internal/model"
-	"github.com/muh-hizbe/cashier-api/internal/repository"
 	"github.com/muh-hizbe/cashier-api/internal/response"
+	"github.com/muh-hizbe/cashier-api/internal/services"
 )
 
 type ProductHandler struct {
-	repo *repository.ProductRepository
+	service *services.ProductService
 }
 
-func NewProductHandler(repo *repository.ProductRepository) *ProductHandler {
-	return &ProductHandler{repo: repo}
+func NewProductHandler(service *services.ProductService) *ProductHandler {
+	return &ProductHandler{service: service}
 }
 
 func (h *ProductHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +66,7 @@ func (h *ProductHandler) handleItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := h.repo.GetProducts()
+	products, err := h.service.GetProducts()
 	if err != nil {
 		response.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -74,8 +76,15 @@ func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request, id int) {
-	product, err := h.repo.GetProduct(id)
-	if err != nil {
+	product, err := h.service.GetProduct(id)
+	if err != nil && product == nil {
+		if errors.Is(err, domain.ErrNotFound) {
+			response.Error(w, "Product not found", http.StatusNotFound)
+		} else {
+			response.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	} else if err == nil && product == nil {
 		response.Error(w, "Product not found", http.StatusNotFound)
 		return
 	}
@@ -91,7 +100,7 @@ func (h *ProductHandler) NewProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.repo.CreateProduct(&newProduct)
+	product, err := h.service.CreateProduct(&newProduct)
 	if err != nil {
 		response.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -108,8 +117,17 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, i
 		return
 	}
 
-	product, err := h.repo.UpdateProduct(&updatedProduct, id)
-	if err != nil {
+	product, err := h.service.UpdateProduct(&updatedProduct, id)
+	if err != nil && product == nil {
+		if errors.Is(err, domain.ErrInvalidInput) {
+			response.Error(w, err.Error(), http.StatusBadRequest)
+		} else if errors.Is(err, domain.ErrNotFound) {
+			response.Error(w, err.Error(), http.StatusNotFound)
+		} else {
+			response.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	} else if err == nil && product == nil {
 		response.Error(w, "Product not found", http.StatusNotFound)
 		return
 	}
@@ -118,9 +136,13 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, i
 }
 
 func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request, id int) {
-	err := h.repo.DeleteProduct(id)
+	err := h.service.DeleteProduct(id)
 	if err != nil {
-		response.Error(w, "Product not found", http.StatusNotFound)
+		if errors.Is(err, domain.ErrNotFound) {
+			response.Error(w, "Product not found", http.StatusNotFound)
+		} else {
+			response.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 

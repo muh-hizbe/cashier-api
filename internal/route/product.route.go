@@ -3,13 +3,17 @@ package route
 import (
 	"net/http"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/muh-hizbe/cashier-api/internal/handler"
 	"github.com/muh-hizbe/cashier-api/internal/repository"
+	"github.com/muh-hizbe/cashier-api/internal/services"
 )
 
-func registerProductRoutes(w http.ResponseWriter, r *http.Request) {
-	pr := repository.NewProductRepository()
-	ph := handler.NewProductHandler(pr)
+func registerProductRoutes(db *pgxpool.Pool) {
+
+	pr := repository.NewProductRepository(db)
+	ps := services.NewProductService(pr)
+	ph := handler.NewProductHandler(ps)
 	http.Handle("/api/products", ph)
 	http.Handle("/api/products/", ph)
 	// http.HandleFunc("/api/products", func(w http.ResponseWriter, r *http.Request) {

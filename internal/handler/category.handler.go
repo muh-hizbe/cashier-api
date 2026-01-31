@@ -2,21 +2,23 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/muh-hizbe/cashier-api/internal/domain"
 	"github.com/muh-hizbe/cashier-api/internal/model"
-	"github.com/muh-hizbe/cashier-api/internal/repository"
 	"github.com/muh-hizbe/cashier-api/internal/response"
+	"github.com/muh-hizbe/cashier-api/internal/services"
 )
 
 type CategoryHandler struct {
-	repo *repository.CategoryRepository
+	service *services.CategoryService
 }
 
-func NewCategoryHandler(repo *repository.CategoryRepository) *CategoryHandler {
-	return &CategoryHandler{repo: repo}
+func NewCategoryHandler(service *services.CategoryService) *CategoryHandler {
+	return &CategoryHandler{service: service}
 }
 
 func (h *CategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +66,7 @@ func (h *CategoryHandler) handleItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.repo.GetCategories()
+	categories, err := h.service.GetCategories()
 	if err != nil {
 		response.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -74,7 +76,7 @@ func (h *CategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *CategoryHandler) GetCategory(w http.ResponseWriter, r *http.Request, id int) {
-	category, err := h.repo.GetCategory(id)
+	category, err := h.service.GetCategory(id)
 	if err != nil {
 		response.Error(w, "Category not found", http.StatusNotFound)
 		return
@@ -91,7 +93,7 @@ func (h *CategoryHandler) NewCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := h.repo.CreateCategory(&newCategory)
+	category, err := h.service.CreateCategory(&newCategory)
 	if err != nil {
 		response.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -108,8 +110,11 @@ func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	category, err := h.repo.UpdateCategory(&updatedCategory, id)
-	if err != nil {
+	category, err := h.service.UpdateCategory(&updatedCategory, id)
+	if err != nil && category == nil {
+		response.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	} else if err == nil && category == nil {
 		response.Error(w, "Category not found", http.StatusNotFound)
 		return
 	}
@@ -118,9 +123,13 @@ func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request,
 }
 
 func (h *CategoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request, id int) {
-	err := h.repo.DeleteCategory(id)
+	err := h.service.DeleteCategory(id)
 	if err != nil {
-		response.Error(w, "Category not found", http.StatusNotFound)
+		if errors.Is(err, domain.ErrNotFound) {
+			response.Error(w, "Category not found", http.StatusNotFound)
+		} else {
+			response.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
