@@ -33,7 +33,11 @@ This document provides comprehensive documentation for the Cashier API endpoints
 **Description:** Creates a new product in the system.
 
 **Request Body:**
-- Product details (name, price, stock)
+- Product details (name, price, stock, category_id)
+- name (string)
+- price (int)
+- stock (int)
+- category_id is nullable (int)
 
 **Response:**
 - Returns the created product object
@@ -58,7 +62,11 @@ This document provides comprehensive documentation for the Cashier API endpoints
 - `id` (path parameter) - The unique identifier of the product
 
 **Request Body:**
-- Updated product details (name, price, stock)
+- Updated product details (name, price, stock, category_id)
+- name (string)
+- price (int)
+- stock (int)
+- category_id is nullable (int)
 
 **Response:**
 - Returns the updated product object
@@ -93,6 +101,8 @@ This document provides comprehensive documentation for the Cashier API endpoints
 
 **Request Body:**
 - Category details (name, description)
+- name (string)
+- description (string) nullable
 
 **Response:**
 - Returns the created category object
@@ -118,6 +128,8 @@ This document provides comprehensive documentation for the Cashier API endpoints
 
 **Request Body:**
 - Updated category details (name, description)
+- name (string)
+- description (string) nullable
 
 **Response:**
 - Returns the updated category object
